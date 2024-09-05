@@ -52,9 +52,11 @@ class MainActivity : AppCompatActivity() {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         binding.btLocation.setOnClickListener {
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION
+            if (ActivityCompat.checkSelfPermission(
+                    this, Manifest.permission.ACCESS_FINE_LOCATION
                 ) == PackageManager.PERMISSION_GRANTED &&
-                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION
+                ActivityCompat.checkSelfPermission(
+                    this, Manifest.permission.ACCESS_COARSE_LOCATION
                 ) == PackageManager.PERMISSION_GRANTED
             ) {
                 fusedLocationClient.lastLocation.addOnSuccessListener { location ->
@@ -63,7 +65,7 @@ class MainActivity : AppCompatActivity() {
                             "Latitude: " + location.latitude.toString() + "\nLongitude: " + location.longitude.toString()
                         binding.tvLocation.text = locationString
                     } else {
-                        // lastLocation ist null, starte eine explizite Standortanfrage
+                        // lastLocation ist null, starte eine explizite Standortanfrage.
                         requestNewLocationData()
                     }
                 }
@@ -79,25 +81,35 @@ class MainActivity : AppCompatActivity() {
             1000
         ).setMinUpdateIntervalMillis(2000)
             .build()
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION
+        if (ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED &&
-            ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION
+            ActivityCompat.checkSelfPermission(
+                this, Manifest.permission.ACCESS_COARSE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED
         ) {
-            fusedLocationClient.requestLocationUpdates(locationRequest, object : com.google.android.gms.location.LocationCallback() {
-                override fun onLocationResult(locationResult: com.google.android.gms.location.LocationResult) {
-                    super.onLocationResult(locationResult)
-                    val location = locationResult.lastLocation
-                    if (location != null) {
-                        val locationString = "Latitude: ${location.latitude}, Longitude: ${location.longitude}"
-                        binding.tvLocation.text = locationString
-                        Toast.makeText(this@MainActivity, "Standort konnte ermittelt werden", Toast.LENGTH_SHORT).show()
-                    } else {
-                        // Standort immer noch nicht verfügbar, zeige dem Benutzer eine Fehlermeldung
-                        Toast.makeText(this@MainActivity, "Standort konnte nicht ermittelt werden", Toast.LENGTH_SHORT).show()
+            fusedLocationClient.requestLocationUpdates(
+                locationRequest,
+                object : com.google.android.gms.location.LocationCallback() {
+                    override fun onLocationResult(locationResult: com.google.android.gms.location.LocationResult) {
+                        super.onLocationResult(locationResult)
+                        val location = locationResult.lastLocation
+                        if (location != null) {
+                            val locationString =
+                                "Latitude: " + location.latitude.toString() + "\nLongitude: " + location.longitude.toString()
+                            binding.tvLocation.text = locationString
+                        } else {
+                            // Standort immer noch nicht verfügbar, zeige dem Benutzer eine Fehlermeldung.
+                            Toast.makeText(
+                                this@MainActivity,
+                                "Standort konnte nicht ermittelt werden!",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
-                }
-            }, null)
+                },
+                null
+            )
         }
     }
 
@@ -109,6 +121,47 @@ class MainActivity : AppCompatActivity() {
             .show()
     }
 
+    private fun requestInitialPermissions() {
+        if (ActivityCompat.shouldShowRequestPermissionRationale(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            )
+        ) {
+            showRationaleDialog {
+                // Zeige den Dialog mit der Erklärung und fordere anschließend die Berechtigungen an
+                requestPermissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            }
+        } else {
+            // Überprüfen, ob die Berechtigung dauerhaft abgelehnt wurde (Don't ask again)
+            val isPermissionDeniedPermanently =
+                !ActivityCompat.shouldShowRequestPermissionRationale(
+                    this,
+                    Manifest.permission.ACCESS_FINE_LOCATION
+                )
+            if (isPermissionDeniedPermanently) {
+                // Zeige dem Benutzer eine Nachricht und leite ihn zu den App-Einstellungen.
+                showSettingsDialog()
+            } else {
+                // Fordere die Berechtigungen direkt an, da sie noch nicht abgelehnt wurden
+                requestPermissionLauncher.launch(
+                    arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    )
+                )
+            }
+        }
+    }
+
+    /**
+     * Der Benutzer hat dauerhaft die Berechtigung verweigert.
+     * Zeige einen AlertDialog der den Benutzer zu den App-Einstellungen leiten kann.
+     */
     private fun showSettingsDialog() {
         MaterialAlertDialogBuilder(this)
             .setTitle("Berechtigungen dauerhaft abgelehnt")
@@ -122,35 +175,5 @@ class MainActivity : AppCompatActivity() {
             }
             .setNegativeButton("Abbrechen", null)
             .show()
-    }
-
-    private fun requestInitialPermissions() {
-        if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)) {
-            showRationaleDialog {
-                // Zeige den Dialog mit der Erklärung und fordere anschließend die Berechtigungen an
-                requestPermissionLauncher.launch(
-                    arrayOf(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    )
-                )
-            }
-        }  else {
-            // Überprüfen, ob die Berechtigung dauerhaft abgelehnt wurde (Don't ask again)
-            val isPermissionDeniedPermanently = !ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)
-
-            if (isPermissionDeniedPermanently) {
-                // Zeige dem Benutzer eine Nachricht und leite ihn zu den App-Einstellungen
-                showSettingsDialog()
-            } else {
-                // Fordere die Berechtigungen direkt an, da sie noch nicht abgelehnt wurden
-                requestPermissionLauncher.launch(
-                    arrayOf(
-                        Manifest.permission.ACCESS_FINE_LOCATION,
-                        Manifest.permission.ACCESS_COARSE_LOCATION
-                    )
-                )
-            }
-        }
     }
 }
