@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Location Demo</string>
+    <string name="no_location_available">No Location available!</string>
+    <string name="get_location">Get Location</string>
+</resources>
